@@ -1,4 +1,5 @@
 using MoMoSandBoxWeb.Components;
+using MoMoSandBoxWeb.Model;
 using MoMoSandBoxWeb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddHttpClient<MoMoService>();
 
+builder.Services.Configure<MoMoSettings>(builder.Configuration.GetSection("MoMo"));
+builder.Services.AddHttpClient<MoMoService>();
 
 
 var app = builder.Build();

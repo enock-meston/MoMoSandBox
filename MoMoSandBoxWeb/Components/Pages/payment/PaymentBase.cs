@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
+using MoMoSandBoxWeb.Model;
 using MoMoSandBoxWeb.Services;
 
 namespace MoMoSandBoxWeb.Components.Pages.payment
@@ -13,18 +15,14 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
         public bool isLoading = false;
         public bool success = false;
 
-        [Inject]
-        public IJSRuntime? JSRuntime { get; set; }
-        [Inject]
-        public MoMoService MoMoService { get; set; }
+        [Inject] public IJSRuntime? JSRuntime { get; set; }
+        [Inject] public MoMoService MoMoService { get; set; }
+        [Inject] public IOptions<MoMoSettings> MoMoSettings { get; set; }
 
-        // generate token
         public async Task ProcessPayment()
         {
-            //if (JSRuntime != null)
-            //{
-            //    await JSRuntime.InvokeVoidAsync("alert", "Payment function called!");
-            //}
+            var subscriptionKey = MoMoSettings.Value.SubscriptionKey;
+            var basicAuthToken = MoMoSettings.Value.BasicAuthToken;
 
             isLoading = true;
             statusMessage = "";
@@ -32,6 +30,20 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
 
             try
             {
+                // Step 1: Generate token
+                var token = await MoMoService.GetBearerTokenAsync(
+                    basicAuthToken: basicAuthToken,
+                    subscriptionKey: subscriptionKey
+                );
+
+                if (token == null)
+                {
+                    statusMessage = "❌ Failed to generate token!";
+                    success = false;
+                    return;
+                }
+
+                // Step 2: Request to pay
                 var referenceId = Guid.NewGuid().ToString();
                 var (ok, response) = await MoMoService.RequestToPayAsync(
                     amount: amount,
@@ -41,8 +53,8 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
                     referenceId: referenceId,
                     payerMessage: "MoMo Market Payment",
                     payeeNote: "MoMo Market Payment",
-                    bearerToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSMjU2In0.eyJjbGllbnRJZCI6IjcwZGMxZDBkLWJjNWItNGZjMy04MTBiLTlmYzk4YmI5MDg2NiIsImV4cGlyZXMiOiIyMDI2LTAzLTEzVDE0OjU3OjEzLjYyMjI2MDk5OCIsInNlc3Npb25JZCI6IjY5OGU4NDZmLWFkMDUtNGVjMy04YTdlLWM3MjMxNTg0OGMxYSJ9.IQBQrTQs9Z5TVBjusnjuJGm0-5m4C1Zd1w_oLEOfk7qMwAF2sEbWR4cSX1S3nE_J6elND2F3p2P5g0DN1fdepoLX6A-tkO7qIwx-wn6s5JAxnRv2j0SNBr2F9YO3F35XFtiiUKXa4HzPf7j4XCO5rVr0oLvNXJVqZPH7TJh9e3Vvdv_dpilM4cXjiv5brQE5xke0O8CzJYWBIof1-mkH6JmuMe4BfR-1Etq4qma-XjKtl9B7jUgGDAw1VB6xG0uLdzcR6vbN-C7YuKXxHIhAFOhPDFehJhm15yPimW1jlaCBWMiJp2kZ6Ws2wYVQ8IqUEyusUuRCAmkBGHNRj7ri6Q",
-                    subscriptionKey: "25407f5a9eae40528115c71fe5205961"
+                    bearerToken: token,
+                    subscriptionKey: subscriptionKey
                 );
 
                 success = ok;
@@ -50,13 +62,12 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
 
                 if (ok)
                 {
-                    //statusMessage = $"Payment request sent successfully! (202 Accepted)";
-                    //call  status Request To Pay method
-                    await ProcessCheckStatus(referenceId);
+                    // Step 3: Check payment status
+                    await ProcessCheckStatus(referenceId, token, subscriptionKey);
                 }
                 else
                 {
-                    statusMessage = $"Payment failed!{response.Count()}";
+                    statusMessage = $"❌ Payment failed! {response}";
                 }
             }
             catch (Exception ex)
@@ -71,30 +82,23 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
             }
         }
 
-        public async Task ProcessCheckStatus(string referenceId)
+        public async Task ProcessCheckStatus(string referenceId, string bearerToken, string subscriptionKey)
         {
             isLoading = true;
             statusMessage = "";
             responseDetails = "";
+
             try
             {
                 var (ok, responseBody) = await MoMoService.GetRequestToPayStatusAsync(
-                    referenceId: "158c8952-23e9-490b-b12d-75953200bf12",
-                    bearerToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSMjU2In0.eyJjbGllbnRJZCI6IjcwZGMxZDBkLWJjNWItNGZjMy04MTBiLTlmYzk4YmI5MDg2NiIsImV4cGlyZXMiOiIyMDI2LTAzLTEzVDE0OjU3OjEzLjYyMjI2MDk5OCIsInNlc3Npb25JZCI6IjY5OGU4NDZmLWFkMDUtNGVjMy04YTdlLWM3MjMxNTg0OGMxYSJ9.IQBQrTQs9Z5TVBjusnjuJGm0-5m4C1Zd1w_oLEOfk7qMwAF2sEbWR4cSX1S3nE_J6elND2F3p2P5g0DN1fdepoLX6A-tkO7qIwx-wn6s5JAxnRv2j0SNBr2F9YO3F35XFtiiUKXa4HzPf7j4XCO5rVr0oLvNXJVqZPH7TJh9e3Vvdv_dpilM4cXjiv5brQE5xke0O8CzJYWBIof1-mkH6JmuMe4BfR-1Etq4qma-XjKtl9B7jUgGDAw1VB6xG0uLdzcR6vbN-C7YuKXxHIhAFOhPDFehJhm15yPimW1jlaCBWMiJp2kZ6Ws2wYVQ8IqUEyusUuRCAmkBGHNRj7ri6Q",
-                    subscriptionKey: "25407f5a9eae40528115c71fe5205961"
+                    referenceId: referenceId,
+                    bearerToken: bearerToken,
+                    subscriptionKey: subscriptionKey
                 );
 
                 success = ok;
                 responseDetails = responseBody;
-
-                if (ok)
-                {
-                    statusMessage = "Status: " + responseBody;
-                }
-                else
-                {
-                    statusMessage = "Error: " + responseBody;
-                }
+                statusMessage = ok ? "✅ Status: " + responseBody : "❌ Error: " + responseBody;
             }
             catch (Exception ex)
             {
@@ -107,9 +111,7 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
                 isLoading = false;
             }
         }
-        protected override async Task OnInitializedAsync()
-        {
 
-        }
+        protected override async Task OnInitializedAsync() { }
     }
 }
