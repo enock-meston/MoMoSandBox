@@ -8,8 +8,8 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
 {
     public class PaymentBase : ComponentBase
     {
-        public string phoneNumber = "56733123453";
-        public string amount = "600";
+        public string phoneNumber = "";
+        public string amount = "";
         public string statusMessage = "";
         public string responseDetails = "";
         public bool isLoading = false;
@@ -38,7 +38,7 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
 
                 if (token == null)
                 {
-                    statusMessage = "❌ Failed to generate token!";
+                    statusMessage = "Failed to generate token!";
                     success = false;
                     return;
                 }
@@ -67,13 +67,13 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
                 }
                 else
                 {
-                    statusMessage = $"❌ Payment failed! {response}";
+                    statusMessage = $"Payment failed! {response}";
                 }
             }
             catch (Exception ex)
             {
                 success = false;
-                statusMessage = $"❌ Error: {ex.Message}";
+                statusMessage = $"Error: {ex.Message}";
                 responseDetails = ex.ToString();
             }
             finally
@@ -98,12 +98,12 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
 
                 success = ok;
                 responseDetails = responseBody;
-                statusMessage = ok ? "✅ Status: " + responseBody : "❌ Error: " + responseBody;
+                statusMessage = ok ? "Status: " + responseBody : "Error: " + responseBody;
             }
             catch (Exception ex)
             {
                 success = false;
-                statusMessage = $"❌ Error: {ex.Message}";
+                statusMessage = $"Error: {ex.Message}";
                 responseDetails = ex.ToString();
             }
             finally
@@ -112,6 +112,8 @@ namespace MoMoSandBoxWeb.Components.Pages.payment
             }
         }
 
-        protected override async Task OnInitializedAsync() { }
+        protected override async Task OnInitializedAsync() { 
+        
+        }
     }
 }

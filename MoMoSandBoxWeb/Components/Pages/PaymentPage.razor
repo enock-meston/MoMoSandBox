@@ -41,8 +41,8 @@
 }
 
 @code {
-    private string phoneNumber = "56733123453";
-    private string amount = "80";
+    private string? phoneNumber = "";
+    private string? amount = "";
     private string statusMessage = "";
     private string responseDetails = "";
     private bool isLoading = false;
@@ -74,7 +74,7 @@
                 referenceId:referenceId,
                 payerMessage: "MoMo Market Payment",
                 payeeNote: "MoMo Market Payment",
-                bearerToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSMjU2In0.eyJjbGllbnRJZCI6IjcwZGMxZDBkLWJjNWItNGZjMy04MTBiLTlmYzk4YmI5MDg2NiIsImV4cGlyZXMiOiIyMDI2LTAzLTEzVDExOjAyOjIxLjQ4OTk3OTYyIiwic2Vzc2lvbklkIjoiMjBkYzE4MTUtNDNhNy00MmY3LWJhMDMtYjk5NjA3YmE3MThhIn0.Th2ebYej1l0vzRAW0tL0gI1tvVnnrFyQIXJ7nzkexnKSTHlRkE3tMO6MZk_ZVMkP67GzHNaMDFRwkjg_0qktcJ4T-BfcuC5NU-mZ0VmlgR51ISuqj9MGvh14NX0pDF-lKdTY3tancF1DT_6MXQAkJ3LOu_u_unn1oVHIwhfJIAb1VPS3uE0tBGwMXvd5W_oYeKMVaD1RFJhfjynJkb_N-9r4QhTNee8qqAd_P85AGINkvXcu9FzpG8iKNvm9pkrbWshfgNkYEArCx5HtLs_bi9z3clAEQEZsCcoJtxQOFapOAtz2jdsn9F8APpzCL3Fxvdta1p0fwtpUKmMXzNZWYw",
+                bearerToken: "eyJ0eXAiOiJKV1QiLCJhbGciObJSMjU2In0.eyJjbGllbnRJZCI6IjcwZGMxZDBkLWJjNWItNGZjMy04MTBiLTlmYzk4YmI5MDg2NiIsImV4cGlyZXMiOiIyMDI2LTAzLTEzVDExOjAyOjIxLjQ4OTk3OTYyIiwic2Vzc2lvbklkIjoiMjBkYzE4MTUtNDNhNy00MmY3LWJhMDMtYjk5NjA3YmE3MThhIn0.Th2ebYej1l0vzRAW0tL0gI1tvVnnrFyQIXJ7nzkexnKSTHlRkE3tMO6MZk_ZVMkP67GzHNaMDFRwkjg_0qktcJ4T-BfcuC5NU-mZ0VmlgR51ISuqj9MGvh14NX0pDF-lKdTY3tancF1DT_6MXQAkJ3LOu_u_unn1oVHIwhfJIAb1VPS3uE0tBGwMXvd5W_oYeKMVaD1RFJhfjynJkb_N-9r4QhTNee8qqAd_P85AGINkvXcu9FzpG8iKNvm9pkrbWshfgNkYEArCx5HtLs_bi9z3clAEQEZsCcoJtxQOFapOAtz2jdsn9F8APpzCL3Fxvdta1p0fwtpUKmMXzNZWYw",
                 subscriptionKey: "25407f5a9eae40528115c71fe5205961"
             );
 
@@ -83,17 +83,17 @@
             
             if (ok)
             {
-                statusMessage = "✅ Payment request sent successfully! (202 Accepted)";
+                statusMessage = " Payment request sent successfully! (202 Accepted)";
             }
             else
             {
-                statusMessage = "❌ Payment request failed!";
+                statusMessage = " Payment request failed!";
             }
         }
         catch (Exception ex)
         {
             success = false;
-            statusMessage = $"❌ Error: {ex.Message}";
+            statusMessage = $" Error: {ex.Message}";
             responseDetails = ex.ToString();
         }
         finally
